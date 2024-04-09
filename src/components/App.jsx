@@ -100,7 +100,7 @@ class App extends React.Component {
             <Button page={currentPage} loadMore={this.loadMore} />
           )}
 
-          {currentPage == totalPages && (
+          {currentPage === totalPages && (
             <p className={css.endNote}>
               You reached the end of the gallery, no more images to load.
             </p>
