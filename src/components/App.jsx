@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import css from './App.module.css';
 import { per_page, queryImages } from '../pixabay';
 import Searchbar from './Searchbar/Searchbar';
@@ -7,116 +7,103 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
+const App = () => {
+  const [images, setImages] = useState([]);
+  const [queryWord, setQueryWord] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalActive, setModalActive] = useState(false);
+  const [modalImage, setModalImage] = useState('');
+  const [modalAlt, setModalAlt] = useState('');
+  const [changeTrigger, setChangeTrigger] = useState(false);
 
-    this.state = {
-      images: [],
-      queryWord: '',
-      currentPage: 1,
-      totalPages: 0,
-      isLoading: false,
-      isError: false,
-      modalActive: false,
-      modalImage: '',
-      modalAlt: '',
-    };
-  }
-
-  componentDidUpdate(_prevProps, prevState) {
-    if (
-      prevState.queryWord !== this.state.queryWord ||
-      prevState.currentPage !== this.state.currentPage
-    ) {
-      this.fetchImages();
+  useEffect(() => {
+    if (changeTrigger && queryWord !== '') {
+      fetchImages();
     }
-  }
+    // eslint-disable-next-line
+  }, [queryWord, currentPage, changeTrigger]);
 
-  fetchImages = async () => {
-    const { queryWord, currentPage } = this.state;
-
+  const fetchImages = async () => {
+    console.log(1);
     try {
       const data = await queryImages(currentPage, queryWord);
       const { hits, totalHits } = data;
 
-      this.setState({
-        totalPages: Math.ceil(totalHits / per_page),
-        isLoading: false,
-      });
-      this.setState(prevState => ({ images: [...prevState.images, ...hits] }));
+      setTotalPages(Math.ceil(totalHits / per_page));
+      setIsLoading(false);
+
+      setImages(prevImages => [...prevImages, ...hits]);
+      setChangeTrigger(false);
     } catch (error) {
       console.log(error);
-      this.setState({ isLoading: false });
+      setIsLoading(false);
+      setChangeTrigger(false);
     }
   };
 
-  searchWord = keyword => {
-    this.setState(prevState =>
-      prevState.queryWord !== keyword
-        ? { isLoading: true, images: [], currentPage: 1, totalPages: 0 }
-        : { isLoading: false }
-    );
-    this.setState({ queryWord: keyword });
+  const searchWord = keyword => {
+    if (queryWord !== keyword) {
+      setIsLoading(true);
+      setImages([]);
+      setCurrentPage(1);
+      setTotalPages(0);
+      setChangeTrigger(true);
+    } else {
+      setIsLoading(false);
+    }
+
+    setQueryWord(keyword);
   };
 
-  loadMore = nextPage => {
-    this.setState({ isLoading: true, currentPage: nextPage });
+  const loadMore = nextPage => {
+    setIsLoading(true);
+    setCurrentPage(nextPage);
+    setChangeTrigger(true);
   };
 
-  enlargePhoto = (largeImageURL, alt) => {
-    this.setState({
-      modalActive: true,
-      modalImage: largeImageURL,
-      modalAlt: alt,
-    });
+  const enlargePhoto = (largeImageURL, alt) => {
+    setModalActive(true);
+    setModalImage(largeImageURL);
+    setModalAlt(alt);
   };
 
-  closeModal = () => {
-    this.setState({ modalActive: false, modalImage: '', modalAlt: '' });
+  const closeModal = () => {
+    setModalActive(false);
+    setModalImage('');
+    setModalAlt('');
   };
 
-  render() {
-    const {
-      images,
-      isLoading,
-      currentPage,
-      totalPages,
-      modalActive,
-      modalImage,
-      modalAlt,
-    } = this.state;
+  return (
+    <div className={css.app}>
+      <Searchbar searchWord={searchWord} />
 
-    return (
-      <div className={css.app}>
-        <Searchbar searchWord={this.searchWord} />
+      <ImageGallery images={images} enlargePhoto={enlargePhoto} />
 
-        <ImageGallery images={images} enlargePhoto={this.enlargePhoto} />
+      {isLoading && <Loader />}
 
-        {isLoading && <Loader />}
+      <div className={css.buttonContainer}>
+        {totalPages > currentPage && (
+          <Button page={currentPage} loadMore={loadMore} />
+        )}
 
-        <div className={css.buttonContainer}>
-          {totalPages > currentPage && (
-            <Button page={currentPage} loadMore={this.loadMore} />
-          )}
-
-          {currentPage === totalPages && (
-            <p className={css.endNote}>
-              You reached the end of the gallery, no more images to load.
-            </p>
-          )}
-        </div>
-
-        {modalActive && (
-          <Modal
-            modalImage={modalImage}
-            modalAlt={modalAlt}
-            closeModal={this.closeModal}
-          />
+        {currentPage === totalPages && (
+          <p className={css.endNote}>
+            You reached the end of the gallery, no more images to load.
+          </p>
         )}
       </div>
-    );
-  }
-}
+
+      {modalActive && (
+        <Modal
+          modalImage={modalImage}
+          modalAlt={modalAlt}
+          closeModal={closeModal}
+        />
+      )}
+    </div>
+  );
+};
 
 export default App;

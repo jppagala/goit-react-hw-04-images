@@ -1,55 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import css from './Searchbar.module.css';
 import { FaSearch } from 'react-icons/fa';
 
-class Searchbar extends React.Component {
-  static propTypes = {
-    searchWord: PropTypes.func.isRequired,
-  };
-  constructor(props) {
-    super(props);
+const Searchbar = ({ searchWord }) => {
+  const [keyword, setKeyword] = useState('');
 
-    this.state = {
-      keyword: '',
-    };
-  }
-
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault();
 
-    this.props.searchWord(this.state.keyword);
+    searchWord(keyword);
   };
 
-  handleChange = event => {
-    const { name, value } = event.target;
-    this.setState({ [name]: value });
+  const handleChange = event => {
+    setKeyword(event.target.value);
   };
 
-  render() {
-    const { keyword } = this.state;
+  return (
+    <header className={css.searchBar}>
+      <form className={css.searchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={css.searchFormButton}>
+          <FaSearch />
+        </button>
 
-    return (
-      <header className={css.searchBar}>
-        <form className={css.searchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={css.searchFormButton}>
-            <FaSearch />
-          </button>
+        <input
+          className={css.searchFormInput}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          name="keyword"
+          value={keyword}
+          onChange={handleChange}
+        />
+      </form>
+    </header>
+  );
+};
 
-          <input
-            className={css.searchFormInput}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            name="keyword"
-            value={keyword}
-            onChange={this.handleChange}
-          />
-        </form>
-      </header>
-    );
-  }
-}
+Searchbar.propTypes = {
+  searchWord: PropTypes.func.isRequired,
+};
 
 export default Searchbar;

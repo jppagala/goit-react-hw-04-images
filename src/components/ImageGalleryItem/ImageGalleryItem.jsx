@@ -2,30 +2,28 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import css from './ImageGalleryItem.module.css';
 
-class ImageGalleryItem extends React.Component {
-  static propTypes = {
-    image: PropTypes.object.isRequired,
-    enlargePhoto: PropTypes.func.isRequired,
+const ImageGalleryItem = ({ image, enlargePhoto }) => {
+  const handleClick = (largeImageURL, alt) => {
+    enlargePhoto(largeImageURL, alt);
   };
 
-  handleClick = (largeImageURL, alt) => {
-    this.props.enlargePhoto(largeImageURL, alt);
-  };
+  const { webformatURL, largeImageURL, tags } = image;
 
-  render() {
-    const { webformatURL, largeImageURL, tags } = this.props.image;
+  return (
+    <li className={css.imageGalleryItem}>
+      <img
+        className={css.imageGalleryItemImage}
+        src={webformatURL}
+        alt={tags}
+        onClick={() => handleClick(largeImageURL, tags)}
+      />
+    </li>
+  );
+};
 
-    return (
-      <li className={css.imageGalleryItem}>
-        <img
-          className={css.imageGalleryItemImage}
-          src={webformatURL}
-          alt={tags}
-          onClick={() => this.handleClick(largeImageURL, tags)}
-        />
-      </li>
-    );
-  }
-}
+ImageGalleryItem.propTypes = {
+  image: PropTypes.object.isRequired,
+  enlargePhoto: PropTypes.func.isRequired,
+};
 
 export default ImageGalleryItem;

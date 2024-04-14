@@ -1,43 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import css from './Modal.module.css';
 
-class Modal extends React.Component {
-  static propTypes = {
-    modalImage: PropTypes.string.isRequired,
-    modalAlt: PropTypes.string.isRequired,
-    closeModal: PropTypes.func.isRequired,
+const Modal = ({ modalImage, modalAlt, closeModal }) => {
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  const handleClick = () => {
+    closeModal();
   };
 
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeyPress);
-  }
-
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeyPress);
-  }
-
-  handleClick = () => {
-    this.props.closeModal();
-  };
-
-  handleKeyPress = event => {
+  const handleKeyPress = event => {
     if (event.key === 'Escape') {
-      this.props.closeModal();
+      closeModal();
     }
   };
 
-  render() {
-    const { modalImage, modalAlt } = this.props;
-
-    return (
-      <div className={css.overlay} onClick={this.handleClick}>
-        <div className={css.modal}>
-          <img src={modalImage} alt={modalAlt} onClick={this.handleClick} />
-        </div>
+  return (
+    <div className={css.overlay} onClick={handleClick}>
+      <div className={css.modal}>
+        <img src={modalImage} alt={modalAlt} onClick={handleClick} />
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
+
+Modal.propTypes = {
+  modalImage: PropTypes.string.isRequired,
+  modalAlt: PropTypes.string.isRequired,
+  closeModal: PropTypes.func.isRequired,
+};
 
 export default Modal;
